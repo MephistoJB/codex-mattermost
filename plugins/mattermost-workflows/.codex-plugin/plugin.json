@@ -1,0 +1,45 @@
+{
+  "name": "mattermost-workflows",
+  "version": "0.1.0",
+  "description": "Safe, reusable Mattermost workflows for Codex using Mattermost's official MCP server.",
+  "author": {
+    "name": "Nikolai Shangin",
+    "email": "shanginn@gmail.com",
+    "url": "https://github.com/shanginn"
+  },
+  "homepage": "https://github.com/shanginn/codex-mattermost",
+  "repository": "https://github.com/shanginn/codex-mattermost",
+  "license": "LicenseRef-Shangin-Attribution-1.0",
+  "keywords": [
+    "mattermost",
+    "mcp",
+    "chatops",
+    "summarization",
+    "search"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Mattermost Workflows",
+    "shortDescription": "Summarize, search, and draft in Mattermost.",
+    "longDescription": "Work with a connected Mattermost MCP server: summarize channel activity, find relevant posts, and draft or publish reviewed updates with explicit confirmation before writes.",
+    "developerName": "Nikolai Shangin",
+    "category": "Productivity",
+    "capabilities": [
+      "Read",
+      "Search",
+      "Write"
+    ],
+    "websiteURL": "https://github.com/shanginn/codex-mattermost",
+    "privacyPolicyURL": "https://github.com/shanginn/codex-mattermost/blob/main/PRIVACY.md",
+    "termsOfServiceURL": "https://github.com/shanginn/codex-mattermost/blob/main/TERMS.md",
+    "defaultPrompt": [
+      "Summarize decisions and action items from a Mattermost channel.",
+      "Find Mattermost posts about a deployment issue.",
+      "Draft a Mattermost update and wait for my approval."
+    ],
+    "brandColor": "#0058CC",
+    "composerIcon": "./assets/icon.png",
+    "logo": "./assets/logo.png",
+    "logoDark": "./assets/logo-dark.png"
+  }
+}

@@ -1,0 +1,7 @@
+interface:
+  display_name: "Mattermost Workflows"
+  short_description: "Summarize, search, and draft in Mattermost"
+  default_prompt: "Use $mattermost-workflows to summarize recent decisions in a Mattermost channel."
+
+policy:
+  allow_implicit_invocation: true

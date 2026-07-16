@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">Mattermost Workflows</title>
+  <desc id="desc">A blue chat bubble with a white workflow path</desc>
+  <rect width="512" height="512" rx="112" fill="#0058CC"/>
+  <path d="M116 128h280a44 44 0 0 1 44 44v156a44 44 0 0 1-44 44H254l-92 70v-70h-46a44 44 0 0 1-44-44V172a44 44 0 0 1 44-44Z" fill="#fff"/>
+  <circle cx="162" cy="250" r="24" fill="#0058CC"/>
+  <circle cx="256" cy="202" r="24" fill="#0058CC"/>
+  <circle cx="350" cy="282" r="24" fill="#0058CC"/>
+  <path d="M184 238l50-26M278 216l50 48" fill="none" stroke="#0058CC" stroke-width="20" stroke-linecap="round"/>
+</svg>
