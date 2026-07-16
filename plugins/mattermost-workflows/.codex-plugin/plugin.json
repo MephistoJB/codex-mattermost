@@ -1,7 +1,7 @@
 {
   "name": "mattermost-workflows",
-  "version": "0.1.0",
-  "description": "Safe, reusable Mattermost workflows for Codex using Mattermost's official MCP server.",
+  "version": "0.2.0",
+  "description": "Safe Mattermost workflows for Codex with a bundled local REST API compatibility server.",
   "author": {
     "name": "Nikolai Shangin",
     "email": "shanginn@gmail.com",
@@ -18,10 +18,11 @@
     "search"
   ],
   "skills": "./skills/",
+  "mcpServers": "./.mcp.json",
   "interface": {
     "displayName": "Mattermost Workflows",
     "shortDescription": "Summarize, search, and draft in Mattermost.",
-    "longDescription": "Work with a connected Mattermost MCP server: summarize channel activity, find relevant posts, and draft or publish reviewed updates with explicit confirmation before writes.",
+    "longDescription": "Work with Mattermost through a bundled local MCP server: summarize channel activity, find relevant posts, and publish frozen drafts only after explicit confirmation.",
     "developerName": "Nikolai Shangin",
     "category": "Productivity",
     "capabilities": [

@@ -1,0 +1,23 @@
+{
+  "name": "codex-mattermost",
+  "version": "0.2.0",
+  "private": true,
+  "type": "module",
+  "description": "Local-first Mattermost MCP server and Codex plugin.",
+  "scripts": {
+    "build": "esbuild plugins/mattermost-workflows/server/server.mjs --bundle --platform=node --target=node18 --format=esm --minify-whitespace --legal-comments=eof --outfile=plugins/mattermost-workflows/dist/server.mjs && node scripts/normalize-build.mjs",
+    "test:node": "node --test tests/*.test.mjs",
+    "test:python": "python3 -m unittest discover -s tests -v",
+    "test": "npm run build && npm run test:node && npm run test:python"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "1.29.0",
+    "zod": "4.4.3"
+  },
+  "devDependencies": {
+    "esbuild": "0.28.1"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

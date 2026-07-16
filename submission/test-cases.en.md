@@ -7,8 +7,8 @@ The machine-readable source of truth is [`test-cases.json`](test-cases.json). It
 1. Summarize 20 posts in a uniquely resolved channel.
 2. Summarize a complete thread from a post ID.
 3. Search within one resolved team and exclude out-of-scope matches.
-4. Draft a post without publishing.
-5. Publish one previously shown exact draft after explicit approval.
+4. Prepare and freeze a draft without publishing.
+5. Publish one previously prepared exact draft with its confirmation token after explicit approval.
 
 ## Negative
 

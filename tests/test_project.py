@@ -11,6 +11,9 @@ ROOT = Path(__file__).resolve().parents[1]
 PLUGIN = ROOT / "plugins" / "mattermost-workflows"
 SKILL = PLUGIN / "skills" / "mattermost-workflows"
 MANIFEST = PLUGIN / ".codex-plugin" / "plugin.json"
+MCP_CONFIG = PLUGIN / ".mcp.json"
+MCP_SERVER = PLUGIN / "dist" / "server.mjs"
+THIRD_PARTY_NOTICES = PLUGIN / "THIRD_PARTY_NOTICES.md"
 MARKETPLACE = ROOT / ".agents" / "plugins" / "marketplace.json"
 TEST_CASES = ROOT / "submission" / "test-cases.json"
 ATTRIBUTION = (
@@ -44,6 +47,9 @@ class ManifestTests(unittest.TestCase):
 
     def test_manifest_paths_exist(self) -> None:
         self.assertTrue((PLUGIN / self.manifest["skills"]).is_dir())
+        self.assertTrue((PLUGIN / self.manifest["mcpServers"]).is_file())
+        self.assertTrue(MCP_SERVER.is_file())
+        self.assertTrue(THIRD_PARTY_NOTICES.is_file())
         interface = self.manifest["interface"]
         for field in ("composerIcon", "logo", "logoDark"):
             self.assertTrue((PLUGIN / interface[field]).is_file(), field)
@@ -61,6 +67,14 @@ class ManifestTests(unittest.TestCase):
         self.assertEqual(entry["source"]["path"], "./plugins/mattermost-workflows")
         self.assertEqual(entry["policy"]["installation"], "AVAILABLE")
         self.assertEqual(entry["policy"]["authentication"], "ON_INSTALL")
+
+    def test_bundled_mcp_is_local_and_deployment_neutral(self) -> None:
+        mcp = json.loads(MCP_CONFIG.read_text(encoding="utf-8"))
+        server = mcp["mcpServers"]["mattermost"]
+        self.assertEqual(server["command"], "node")
+        self.assertEqual(server["args"], ["./dist/server.mjs"])
+        self.assertNotIn("url", server)
+        self.assertNotIn("env", server)
 
 
 class SkillSafetyTests(unittest.TestCase):

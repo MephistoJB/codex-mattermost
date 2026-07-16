@@ -1,3 +1,3 @@
-# Release notes — 0.1.0
+# Release notes — 0.2.0
 
-Initial skills-only submission. Mattermost Workflows adds safe channel/thread summaries, scoped post search, team/channel resolution, and reviewed post drafting for users who have separately connected Mattermost's official MCP server. No credentials or demo account are required by the plugin itself. Reviewers can validate the skill with the supplied fixture-based tests; live Mattermost behavior requires a reviewer-controlled Mattermost MCP connection.
+Mattermost Workflows now includes a local stdio MCP server for Mattermost REST API v4, including Mattermost 10.11 compatibility without the administrator-only Agents endpoint. It provides connected-user identity, team/channel discovery, channel and thread reading, scoped search, and reviewed posting. Writes use an expiring, single-use confirmation token bound to the exact prepared target and text. The macOS setup helper stores tokens in Keychain; the publisher hosts no proxy and receives no Mattermost traffic. Automated tests use synthetic local fixtures and require no real deployment or credentials.

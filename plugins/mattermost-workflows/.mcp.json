@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "mattermost": {
+      "cwd": ".",
+      "command": "node",
+      "args": ["./dist/server.mjs"],
+      "note": "Local Mattermost REST API compatibility server. Configure MATTERMOST_URL and MATTERMOST_TOKEN, or use scripts/configure-macos.mjs to store a local session in macOS Keychain."
+    }
+  }
+}

@@ -10,7 +10,7 @@ Summarize, search, and draft in Mattermost.
 
 ## Long description
 
-Use your separately connected official Mattermost MCP server to catch up on channel activity, identify decisions and action items, search workspace conversations, and draft new posts or replies. Every write is shown for review and requires explicit confirmation before publishing. The plugin does not host a proxy, collect credentials, or receive Mattermost traffic.
+Use the bundled local MCP server to catch up on channel activity, identify decisions and action items, search workspace conversations, and draft new posts or replies on Mattermost REST API v4 deployments, including Mattermost 10.11. No administrator-only Agents endpoint is required. Every write is frozen and shown for explicit confirmation before publishing. The plugin connects directly from the user's machine, does not host a proxy, and does not send Mattermost traffic to the publisher.
 
 ## Category
 

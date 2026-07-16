@@ -2,65 +2,112 @@
 
 [Русская версия](SETUP.ru.md)
 
-## 1. Enable the supported Mattermost endpoint
+This plugin runs its own local MCP process and calls Mattermost REST API v4 directly. It is designed for Mattermost 10.11 and does not require administrator access, the Mattermost Agents plugin, an external MCP endpoint, or browser-cookie extraction.
 
-A Mattermost administrator must:
+## 1. Install the plugin
 
-1. Use Mattermost Server 11.2 or later.
-2. Open **System Console > Plugins > Agents > Model Context Protocol (MCP)**.
-3. Enable **Mattermost MCP Server (HTTP)**.
-4. Enable OAuth 2.0 service-provider support and configure manual or dynamic client registration, or provide an approved PAT-based policy.
-5. Review which Mattermost MCP tools are enabled and which require approval.
-
-The endpoint is:
+From GitHub:
 
 ```text
-https://YOUR-MATTERMOST-HOST/plugins/mattermost-ai/mcp-server/mcp
+codex plugin marketplace add shanginn/codex-mattermost --ref main
+codex plugin add mattermost-workflows@personal
 ```
 
-Mattermost's current admin guide lists MCP Support under Entry, Enterprise, and Enterprise Advanced. Confirm your deployment's entitlement with your Mattermost administrator.
-
-## 2. Connect Codex
-
-In ChatGPT desktop:
-
-1. Open **Settings > MCP servers**.
-2. Select **Add server**.
-3. Name it `mattermost`.
-4. Choose **Streamable HTTP**.
-5. Enter the endpoint above.
-6. Save and restart.
-7. Select **Authenticate** and complete OAuth if prompted.
-
-Codex CLI and the IDE extension share the same Codex-host MCP configuration. Do not put a PAT directly in project files. If your administrator requires bearer-token authentication, store the token in a protected environment variable and reference that variable from Codex's MCP configuration.
-
-## 3. Install the plugin
-
-During development:
+For development from an existing clone:
 
 ```text
 codex plugin marketplace add /absolute/path/to/codex-mattermost
 codex plugin add mattermost-workflows@personal
 ```
 
-Start a new task after installation.
+Start a new Codex task after installing or updating the plugin.
+
+## 2. Configure authentication on macOS
+
+Run the helper from a clone of this repository. The recommended method logs in as an ordinary Mattermost user, receives a normal session token, and stores that token in macOS Keychain:
+
+```text
+node plugins/mattermost-workflows/scripts/configure-macos.mjs \
+  --server-url https://chat.example.com \
+  --login-id YOUR_LOGIN
+```
+
+Enter the Mattermost password when prompted. It is used only for the login request and is not printed, saved, or placed in a command argument. If the deployment requires MFA, the helper asks for the current code. The resulting session token is stored as a Keychain generic password under service `codex-mattermost`.
+
+The helper also creates `~/.config/codex-mattermost/config.json` with mode `0600`. That file contains only the server URL and Keychain lookup information:
+
+```json
+{
+  "serverUrl": "https://chat.example.com",
+  "auth": {
+    "type": "macos-keychain",
+    "service": "codex-mattermost",
+    "account": "chat.example.com"
+  }
+}
+```
+
+Do not copy this local file into the repository even though it contains no token.
+
+### Use an existing token instead
+
+If the account already has a personal access token or session token, pass it through standard input so it does not appear in shell history:
+
+```text
+read -r -s "MM_TOKEN?Mattermost token: "; printf '\n'
+printf '%s' "$MM_TOKEN" | node plugins/mattermost-workflows/scripts/configure-macos.mjs \
+  --server-url https://chat.example.com \
+  --token-stdin
+unset MM_TOKEN
+```
+
+Do not put a token in a command-line argument, project file, issue, or chat prompt.
+
+## 3. Environment-variable alternative
+
+The MCP server first checks these environment variables:
+
+```text
+MATTERMOST_URL=https://chat.example.com
+MATTERMOST_TOKEN=your-session-or-personal-access-token
+```
+
+Use this only when the Codex process inherits a protected environment. Do not save these values in `.env` files inside a repository. If the variables are absent, the server uses the local config and Keychain method above.
 
 ## 4. Verify safely
 
-Use read-only checks first:
+Open a new Codex task and start with read-only requests:
 
-1. “Resolve the Engineering team and Release channel, but do not read messages yet.”
-2. “Read the latest five posts and list their IDs without summarizing.”
-3. “Summarize those posts and include their source IDs.”
-4. “Draft a one-line reply, but do not post it.”
+1. “Use Mattermost Workflows. Tell me which account is connected.”
+2. “List the Mattermost teams I can access.”
+3. “Resolve a channel I name, but do not read messages yet.”
+4. “Read the latest five posts and include their post IDs.”
+5. “Draft a one-line reply, but do not post it.”
 
-Only test publishing in a non-sensitive test channel. Confirm the exact target and text when the plugin asks.
+For a write, the workflow first calls `prepare_post`, shows the exact frozen target and text, and asks for explicit approval. Only then may it call `create_post` with the short-lived confirmation token. Any text or target change requires a new preparation and approval.
+
+## Configuration precedence
+
+1. `MATTERMOST_URL` and `MATTERMOST_TOKEN`, when both are set.
+2. `CODEX_MATTERMOST_CONFIG`, when it points to an alternate local JSON config.
+3. `~/.config/codex-mattermost/config.json` and the referenced Keychain item.
+
+Non-local deployments must use HTTPS. The server rejects URLs containing embedded credentials, query strings, or fragments.
+
+## Revoke or replace access
+
+- To replace a saved connection, rerun the helper; it updates the matching Keychain item.
+- To remove the local config, delete `~/.config/codex-mattermost/config.json`.
+- To remove the saved token, delete the `codex-mattermost` generic-password item in Keychain Access.
+- A Mattermost administrator or account owner can separately revoke active sessions or personal access tokens in Mattermost.
 
 ## Troubleshooting
 
-- **No Mattermost tools:** verify the server is enabled, the URL includes `/plugins/mattermost-ai/mcp-server/mcp`, restart Codex, and complete authentication.
-- **OAuth fails:** ask the Mattermost administrator whether the OAuth service provider and client registration are enabled.
-- **Forbidden channel:** the connected Mattermost account does not have access; the plugin must not bypass this.
-- **Write unavailable:** the administrator may have disabled `create_post` or set an approval policy. This is expected and should be respected.
+- **No Mattermost tools:** start a new task after installing, then check that the plugin is enabled and its local MCP process starts.
+- **Missing configuration:** run the helper or provide both environment variables. A URL alone is not enough.
+- **Login rejected:** verify the login ID and password. Some deployments disable API login methods or require SSO; in that case use an approved existing token with `--token-stdin`.
+- **Forbidden channel:** the connected account does not have access. The plugin will not bypass permissions.
+- **Session expired:** rerun the helper to create and save a fresh session.
+- **Write rejected:** prepare the draft again. Confirmation tokens expire after ten minutes and are single-use.
 
-Sources: [Mattermost Agents admin guide](https://docs.mattermost.com/agents/docs/admin_guide.html), [Mattermost MCP server](https://docs.mattermost.com/agents/mcpserver/README.html), and [Codex MCP documentation](https://learn.chatgpt.com/docs/extend/mcp).
+When reporting a problem, sanitize the server URL, team/channel names, post content, user IDs, and all credentials.
