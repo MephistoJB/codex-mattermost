@@ -14,6 +14,8 @@ MANIFEST = PLUGIN / ".codex-plugin" / "plugin.json"
 MCP_CONFIG = PLUGIN / ".mcp.json"
 MCP_SERVER = PLUGIN / "dist" / "server.mjs"
 THIRD_PARTY_NOTICES = PLUGIN / "THIRD_PARTY_NOTICES.md"
+PLUGIN_LICENSE = PLUGIN / "LICENSE"
+PLUGIN_NOTICE = PLUGIN / "NOTICE"
 MARKETPLACE = ROOT / ".agents" / "plugins" / "marketplace.json"
 TEST_CASES = ROOT / "submission" / "test-cases.json"
 ATTRIBUTION = (
@@ -50,6 +52,8 @@ class ManifestTests(unittest.TestCase):
         self.assertTrue((PLUGIN / self.manifest["mcpServers"]).is_file())
         self.assertTrue(MCP_SERVER.is_file())
         self.assertTrue(THIRD_PARTY_NOTICES.is_file())
+        self.assertTrue(PLUGIN_LICENSE.is_file())
+        self.assertTrue(PLUGIN_NOTICE.is_file())
         interface = self.manifest["interface"]
         for field in ("composerIcon", "logo", "logoDark"):
             self.assertTrue((PLUGIN / interface[field]).is_file(), field)
@@ -131,6 +135,8 @@ class DocumentationTests(unittest.TestCase):
         self.assertIn(ATTRIBUTION, (ROOT / "LICENSE").read_text(encoding="utf-8"))
         self.assertIn(ATTRIBUTION, (ROOT / "README.md").read_text(encoding="utf-8"))
         self.assertIn(ATTRIBUTION, (ROOT / "NOTICE").read_text(encoding="utf-8"))
+        self.assertIn(ATTRIBUTION, PLUGIN_LICENSE.read_text(encoding="utf-8"))
+        self.assertIn(ATTRIBUTION, PLUGIN_NOTICE.read_text(encoding="utf-8"))
 
     def test_submission_case_counts(self) -> None:
         cases = json.loads(TEST_CASES.read_text(encoding="utf-8"))

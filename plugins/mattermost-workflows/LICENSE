@@ -1,0 +1,21 @@
+Shangin Attribution License 1.0
+
+Copyright (c) 2026 Nikolai Shangin <shanginn@gmail.com>
+
+Permission is granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to use, copy, modify, fork, merge, publish, distribute, sublicense, and/or sell copies of the Software, subject to all of the following conditions:
+
+1. Every use, deployment, derivative work, or fork of the Software must give clear attribution to Nikolai Shangin. The attribution must be readily visible or accessible in at least one customary location, such as the project's README, documentation, credits, About screen, plugin listing, or source repository.
+
+2. The attribution must contain, at minimum, the following text:
+
+   "Based on Mattermost Workflows for Codex by Nikolai Shangin (shanginn@gmail.com)."
+
+3. Source redistributions and forks must retain this license, the copyright notice above, and the required attribution in their README or equivalent primary documentation.
+
+4. Binary or packaged redistributions must reproduce this license and the required attribution in accompanying documentation, credits, an About screen, or another location reasonably visible to recipients.
+
+5. The name Nikolai Shangin may not be used to imply endorsement of a derivative work, product, or service without prior written permission.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, TITLE, AND NON-INFRINGEMENT. IN NO EVENT SHALL THE COPYRIGHT HOLDER BE LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT, OR OTHERWISE, ARISING FROM, OUT OF, OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+This is a custom attribution-required license identified in metadata as `LicenseRef-Shangin-Attribution-1.0`. It is not represented as an OSI-approved license.
