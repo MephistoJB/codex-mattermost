@@ -45,6 +45,30 @@ export function normalizeServerUrl(value) {
   return parsed.toString().replace(/\/$/, "");
 }
 
+export function normalizeOptionalHttpUrl(value, label) {
+  if (!value || typeof value !== "string" || !value.trim()) return undefined;
+
+  let parsed;
+  try {
+    parsed = new URL(value.trim());
+  } catch {
+    throw new ConfigurationError(`${label} must be an absolute HTTP(S) URL.`);
+  }
+
+  if (!['http:', 'https:'].includes(parsed.protocol) || parsed.username || parsed.password) {
+    throw new ConfigurationError(`${label} must be an HTTP(S) URL without embedded credentials.`);
+  }
+  const isLocal = ["localhost", "127.0.0.1", "::1"].includes(parsed.hostname);
+  if (parsed.protocol !== "https:" && !isLocal) {
+    throw new ConfigurationError(`${label} must use HTTPS unless it points to localhost.`);
+  }
+  if (parsed.hash) {
+    throw new ConfigurationError(`${label} must not include a fragment.`);
+  }
+
+  return parsed.toString();
+}
+
 async function readConfigFile(path) {
   try {
     const raw = await readFile(path, "utf8");
@@ -100,6 +124,10 @@ export async function loadRuntimeConfig(env = process.env) {
     ? {}
     : await readConfigFile(configPath);
   const serverUrl = normalizeServerUrl(env.MATTERMOST_URL || fileConfig.serverUrl);
+  const nexusMemoryUrl = normalizeOptionalHttpUrl(
+    env.NEXUS_MEMORY_MCP_URL || fileConfig.nexusMemoryMcpUrl,
+    "NEXUS_MEMORY_MCP_URL",
+  );
 
   const getToken = async () => {
     const environmentToken = env.MATTERMOST_TOKEN?.trim();
@@ -112,5 +140,5 @@ export async function loadRuntimeConfig(env = process.env) {
     );
   };
 
-  return { configPath, serverUrl, getToken };
+  return { configPath, serverUrl, getToken, nexusMemoryUrl };
 }

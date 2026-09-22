@@ -6,6 +6,7 @@ import { z } from "zod";
 
 import { ConfigurationError, loadRuntimeConfig } from "./config.mjs";
 import { MattermostClient, MattermostError, candidatesFor } from "./mattermost-client.mjs";
+import { NexusMemoryClient, NexusMemoryError } from "./nexus-memory-client.mjs";
 
 const READ_ONLY = {
   readOnlyHint: true,
@@ -28,6 +29,7 @@ const WRITE = {
 const DRAFT_TTL_MS = 10 * 60 * 1000;
 const preparedDrafts = new Map();
 let clientPromise;
+let memoryClientPromise;
 
 async function getClient() {
   if (!clientPromise) {
@@ -36,6 +38,15 @@ async function getClient() {
     );
   }
   return clientPromise;
+}
+
+async function getMemoryClient() {
+  if (!memoryClientPromise) {
+    memoryClientPromise = loadRuntimeConfig().then(
+      (config) => new NexusMemoryClient({ endpointUrl: config.nexusMemoryUrl }),
+    );
+  }
+  return memoryClientPromise;
 }
 
 function jsonResult(value) {
@@ -51,6 +62,9 @@ function errorResult(error) {
     ...(error instanceof MattermostError && error.status ? { status: error.status } : {}),
     ...(error instanceof MattermostError && error.errorId ? { error_id: error.errorId } : {}),
     ...(error instanceof MattermostError && error.requestId ? { request_id: error.requestId } : {}),
+    ...(error instanceof NexusMemoryError && error.status ? { status: error.status } : {}),
+    ...(error instanceof NexusMemoryError && error.code ? { code: error.code } : {}),
+    ...(error instanceof NexusMemoryError && error.payload ? { details: error.payload } : {}),
   };
   return {
     content: [{ type: "text", text: JSON.stringify(safe, null, 2) }],
@@ -64,7 +78,11 @@ function guarded(handler) {
     try {
       return await handler(args);
     } catch (error) {
-      if (error instanceof ConfigurationError || error instanceof MattermostError) {
+      if (
+        error instanceof ConfigurationError ||
+        error instanceof MattermostError ||
+        error instanceof NexusMemoryError
+      ) {
         return errorResult(error);
       }
       console.error("Unexpected Mattermost MCP error:", error);
@@ -280,6 +298,63 @@ server.registerTool(
     const post = await (await getClient()).createPost(draft);
     return jsonResult({ status: "published", post });
   }),
+);
+
+server.registerTool(
+  "search_memory",
+  {
+    title: "Search Nexus memory",
+    description: "Search source-bound Nexus memory records by query, people, topics, time range, and memory type.",
+    inputSchema: {
+      query: z.string().min(1).max(1000),
+      person_names: z.array(z.string().min(1).max(200)).optional(),
+      topics: z.array(z.string().min(1).max(200)).optional(),
+      time_range: z
+        .object({
+          from: z.string().optional(),
+          to: z.string().optional(),
+        })
+        .strict()
+        .optional(),
+      memory_types: z.array(z.string().min(1).max(100)).optional(),
+      max_results: z.number().int().min(1).max(20).default(10),
+    },
+    annotations: READ_ONLY,
+  },
+  guarded(async (args) =>
+    jsonResult(await (await getMemoryClient()).callTool("search_memory", args)),
+  ),
+);
+
+server.registerTool(
+  "get_transcript_segment",
+  {
+    title: "Get Nexus transcript segment",
+    description: "Return one Nexus transcript segment by technical segment ID.",
+    inputSchema: {
+      transcript_segment_id: z.string().min(1).max(200),
+    },
+    annotations: READ_ONLY,
+  },
+  guarded(async (args) =>
+    jsonResult(await (await getMemoryClient()).callTool("get_transcript_segment", args)),
+  ),
+);
+
+server.registerTool(
+  "get_conversation",
+  {
+    title: "Get Nexus conversation",
+    description: "Return one Nexus conversation summary and optionally transcript segments.",
+    inputSchema: {
+      conversation_id: z.string().min(1).max(200),
+      include_segments: z.boolean().default(false),
+    },
+    annotations: READ_ONLY,
+  },
+  guarded(async (args) =>
+    jsonResult(await (await getMemoryClient()).callTool("get_conversation", args)),
+  ),
 );
 
 const transport = new StdioServerTransport();

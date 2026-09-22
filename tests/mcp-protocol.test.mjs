@@ -17,6 +17,7 @@ function json(response, status, value, headers = {}) {
 
 test("stdio MCP lists tools and enforces the prepared-draft write flow", async (t) => {
   let postedBody;
+  let memoryRequest;
   const api = createServer(async (request, response) => {
     assert.equal(request.headers.authorization, "Bearer test-token");
     if (request.method === "GET" && request.url === "/api/v4/users/me") {
@@ -60,11 +61,56 @@ test("stdio MCP lists tools and enforces the prepared-draft write flow", async (
   t.after(() => api.close());
   const address = api.address();
 
+  const memory = createServer(async (request, response) => {
+    assert.equal(request.method, "POST");
+    assert.equal(request.url, "/mcp");
+    const chunks = [];
+    for await (const chunk of request) chunks.push(chunk);
+    memoryRequest = JSON.parse(Buffer.concat(chunks).toString("utf8"));
+    json(response, 200, {
+      jsonrpc: "2.0",
+      id: memoryRequest.id,
+      result: {
+        content: [
+          {
+            type: "text",
+            text: JSON.stringify({
+              results: [
+                {
+                  memory_id: "memory-1",
+                  type: "FACT",
+                  text: "Example source-bound memory.",
+                  confidence: 0.92,
+                },
+              ],
+            }),
+          },
+        ],
+        structuredContent: {
+          results: [
+            {
+              memory_id: "memory-1",
+              type: "FACT",
+              text: "Example source-bound memory.",
+              confidence: 0.92,
+            },
+          ],
+        },
+        isError: false,
+      },
+    });
+  });
+  memory.listen(0, "127.0.0.1");
+  await once(memory, "listening");
+  t.after(() => memory.close());
+  const memoryAddress = memory.address();
+
   const child = spawn(process.execPath, [DIST_SERVER.pathname], {
     env: {
       ...process.env,
       MATTERMOST_URL: `http://127.0.0.1:${address.port}`,
       MATTERMOST_TOKEN: "test-token",
+      NEXUS_MEMORY_MCP_URL: `http://127.0.0.1:${memoryAddress.port}/mcp`,
     },
     stdio: ["pipe", "pipe", "pipe"],
   });
@@ -113,6 +159,9 @@ test("stdio MCP lists tools and enforces the prepared-draft write flow", async (
       "search_posts",
       "prepare_post",
       "create_post",
+      "search_memory",
+      "get_transcript_segment",
+      "get_conversation",
     ],
   );
   assert.equal(tools.find((tool) => tool.name === "create_post").annotations.readOnlyHint, false);
@@ -149,5 +198,29 @@ test("stdio MCP lists tools and enforces the prepared-draft write flow", async (
     },
   });
   assert.equal(replay.result.isError, true);
+
+  const memorySearch = await request("tools/call", {
+    name: "search_memory",
+    arguments: {
+      query: "example",
+      person_names: ["Example User"],
+      max_results: 1,
+    },
+  });
+  assert.deepEqual(memorySearch.result.structuredContent.results[0], {
+    memory_id: "memory-1",
+    type: "FACT",
+    text: "Example source-bound memory.",
+    confidence: 0.92,
+  });
+  assert.equal(memoryRequest.method, "tools/call");
+  assert.deepEqual(memoryRequest.params, {
+    name: "search_memory",
+    arguments: {
+      query: "example",
+      person_names: ["Example User"],
+      max_results: 1,
+    },
+  });
   child.stdin.end();
 });
