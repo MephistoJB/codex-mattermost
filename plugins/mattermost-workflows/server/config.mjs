@@ -45,6 +45,16 @@ export function normalizeServerUrl(value) {
   return parsed.toString().replace(/\/$/, "");
 }
 
+function isPrivateNetworkHost(hostname) {
+  if (["localhost", "127.0.0.1", "::1"].includes(hostname)) return true;
+  const parts = hostname.split(".").map((part) => Number.parseInt(part, 10));
+  if (parts.length !== 4 || parts.some((part) => !Number.isInteger(part) || part < 0 || part > 255)) {
+    return false;
+  }
+  const [first, second] = parts;
+  return first === 10 || (first === 172 && second >= 16 && second <= 31) || (first === 192 && second === 168);
+}
+
 export function normalizeOptionalHttpUrl(value, label) {
   if (!value || typeof value !== "string" || !value.trim()) return undefined;
 
@@ -58,9 +68,8 @@ export function normalizeOptionalHttpUrl(value, label) {
   if (!['http:', 'https:'].includes(parsed.protocol) || parsed.username || parsed.password) {
     throw new ConfigurationError(`${label} must be an HTTP(S) URL without embedded credentials.`);
   }
-  const isLocal = ["localhost", "127.0.0.1", "::1"].includes(parsed.hostname);
-  if (parsed.protocol !== "https:" && !isLocal) {
-    throw new ConfigurationError(`${label} must use HTTPS unless it points to localhost.`);
+  if (parsed.protocol !== "https:" && !isPrivateNetworkHost(parsed.hostname)) {
+    throw new ConfigurationError(`${label} must use HTTPS unless it points to localhost or a private network.`);
   }
   if (parsed.hash) {
     throw new ConfigurationError(`${label} must not include a fragment.`);

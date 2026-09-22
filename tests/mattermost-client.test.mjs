@@ -12,6 +12,7 @@ import {
 import {
   ConfigurationError,
   loadRuntimeConfig,
+  normalizeOptionalHttpUrl,
   normalizeServerUrl,
 } from "../plugins/mattermost-workflows/server/config.mjs";
 
@@ -24,6 +25,21 @@ test("server URL validation requires HTTPS outside localhost", () => {
   );
   assert.throws(
     () => normalizeServerUrl("https://user:secret@chat.example.com"),
+    ConfigurationError,
+  );
+});
+
+test("optional HTTP URL validation allows private network endpoints", () => {
+  assert.equal(
+    normalizeOptionalHttpUrl("http://192.168.1.28:8765/mcp", "TEST_URL"),
+    "http://192.168.1.28:8765/mcp",
+  );
+  assert.equal(
+    normalizeOptionalHttpUrl("https://memory.example.com/mcp", "TEST_URL"),
+    "https://memory.example.com/mcp",
+  );
+  assert.throws(
+    () => normalizeOptionalHttpUrl("http://memory.example.com/mcp", "TEST_URL"),
     ConfigurationError,
   );
 });
